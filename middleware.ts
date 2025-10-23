@@ -3,39 +3,38 @@ import {
     DEFAULT_LOGIN_REDIRECT,
     apiAuthPrefix,
     publicRoutes,
-    authRoutes
-} from "@/routes"
+    authRoutes,
+} from "@/routes";
 import authConfig from "./auth.config";
 
-const {auth} = NextAuth(authConfig)
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
-    const {nextUrl} = req;
-    const isLoggedIn = !!req.auth
+    const { nextUrl } = req;
+    const isLoggedIn = !!req.auth;
 
     const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-
     const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-    if(isApiAuthRoute){
+    if (isApiAuthRoute) {
         return null;
     }
 
-    if(isAuthRoute){
-        if(isLoggedIn){
-            return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT));
+    if (isAuthRoute) {
+        if (isLoggedIn) {
+            return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, req.url));
         }
         return null;
     }
 
-    if(!isLoggedIn && !isPublicRoute){
-        return Response.redirect(new URL("/auth/sign-in", nextUrl));
+    if (!isLoggedIn && !isPublicRoute) {
+        return Response.redirect(new URL("/auth/sign-in", req.url));
     }
-})
+
+    return null;
+});
 
 export const config = {
-    // copied from clerk
     matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
